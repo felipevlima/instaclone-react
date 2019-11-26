@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import api from '../../services/api';
+import { FaSpinner } from 'react-icons/fa';
 
-import { Container } from './styles';
+import { Container, SubmitButton } from './styles';
 
 export default class New extends Component {
   state = {
@@ -10,22 +11,35 @@ export default class New extends Component {
     place: '',
     description: '',
     hashtags: '',
+    loading: true,
+  }
+  componentDidMount() {
+    this.setState({
+      loading: false,
+    })
   }
 
   handleSubmit = async e => {
     e.preventDefault();
+    
+    this.setState({ loading: true });
+    try {
+      const data = new FormData();
+  
+      data.append('image', this.state.image);
+      data.append('author', this.state.author);
+      data.append('place', this.state.place);
+      data.append('description', this.state.description);
+      data.append('hashtags', this.state.hashtags);
+  
+      await api.post('posts', data);
+  
+      this.props.history.push('/');
+    } catch(err) {
 
-    const data = new FormData();
-
-    data.append('image', this.state.image);
-    data.append('author', this.state.author);
-    data.append('place', this.state.place);
-    data.append('description', this.state.description);
-    data.append('hashtags', this.state.hashtags);
-
-    await api.post('posts', data);
-
-    this.props.history.push('/');
+    } finally {
+      this.setState({ loading: false });
+    }
   }
 
   handleImageChange = e => {
@@ -37,6 +51,8 @@ export default class New extends Component {
   }
 
   render() {
+    const { loading } = this.state;
+
     return (
       <Container  onSubmit={this.handleSubmit}>
         <input type="file" onChange={this.handleImageChange}/>
@@ -72,7 +88,13 @@ export default class New extends Component {
           value={this.state.hashtags}
         />
 
-        <button type="submit">Enviar</button>
+        <SubmitButton type="submit" loading={Number(loading)}>
+          {loading ? (
+            <FaSpinner color="#FFF" size={17} />
+          ) : (
+            <p>Enviar</p>
+          )} 
+        </SubmitButton>
       </Container>
     );
   }
